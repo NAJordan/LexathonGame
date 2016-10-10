@@ -60,20 +60,21 @@ public class Lexathon {
         while(words.hasNext()) {
             boolean hasQualLetters = true, hasMidLetter = false;
             String temp = words.next();
-            
+
             // Set the hasMidLetter flag to true if the word contains the middle letter
             for (int i = 0; i < temp.length(); i++) {
-                if (temp.charAt(i) == letters[4]) {
+                if (temp.contains(Character.toString(letters[4]))) {
                     hasMidLetter = true;
                 }
                 
                 // Set the hasQualLetters flag to false if the word contains a non-given letter
-                for (int count = 0; count < 9; count++) {
+                /*for (int count = 0; count < 9; count++) {
                     if (temp.charAt(i) != letters[count]) {
                         hasQualLetters = false;
                     }
-                }
-                
+                }*/
+                System.out.println("mid letter " + hasMidLetter);
+                System.out.println("qual letters " + hasQualLetters);
                 // If both flags are true, then add the current word to the qualWords ArrayList
                 if (hasQualLetters == true && hasMidLetter == true) {
                     qualWords.add(temp);
@@ -103,7 +104,8 @@ public class Lexathon {
                         match = true; // Update the flag
                         score++; // Update the score
                         foundWords.add(userWord); // Add userWord to the foundWords ArrayList
-                        System.out.println("Nice job! Your current score is: " + score + "\n");
+                        System.out.println("Nice job! You found " + foundWords.size() + 
+                                " of " + qualWords.size() + "words.\n");
                         
                         break;
                     }
