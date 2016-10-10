@@ -61,19 +61,24 @@ public class Lexathon {
             boolean hasQualLetters = true, hasMidLetter = false;
             String temp = words.next();
 
-            // Set the hasMidLetter flag to true if the word contains the middle letter
+            // Prevent words from using multiple characters that are not in our letters array by setting
+            // the position bit to 0 when we used the character from the letters array.
+            int usedLetterFlag = 0x000001FF;
+
             for (int i = 0; i < temp.length(); i++) {
-                if (temp.contains(Character.toString(letters[4]))) {
-                    hasMidLetter = true;
-                }
-                
                 // Sets flag to false for every iteration
                 hasQualLetters = false;
                 
                 // Set the hasQualLetters flag to false if the word contains a non-given letter
                 for (int count = 0; count < 9 && !hasQualLetters; count++) {
-                    if (temp.charAt(i) == letters[count]) {
+                    if (temp.charAt(i) == letters[count] && (usedLetterFlag & (1 << count)) != 0) {
+                        // Set the hasMidLetter flag to true if the word contains the middle letter
+                        if(count == 4){
+                            hasMidLetter = true;
+                        }
+
                         hasQualLetters = true;
+                        usedLetterFlag = usedLetterFlag & ~(1 << count);
                     }
                 }
                 
