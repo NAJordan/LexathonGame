@@ -18,8 +18,8 @@ GENERAL LEXATHON ALGORITHM:
    c. If the word is repeated (valid but already found), return an error and
       prompt the user for another word.
    d. If the user enters "#", that will shuffle the letters.
-   e. If the users enters "*", that will quit the game.
-5. Continue prompting until the user enters "*", time runs out, or all words 
+   e. If the users enters "quit", that will quit the game.
+5. Continue prompting until the user enters "quit", time runs out, or all words 
    are found.
 
 LATEST VERSION NOTES:
@@ -67,18 +67,24 @@ public class Lexathon {
                     hasMidLetter = true;
                 }
                 
+                // Sets flag to false for every iteration
+                hasQualLetters = false;
+                
                 // Set the hasQualLetters flag to false if the word contains a non-given letter
-                /*for (int count = 0; count < 9; count++) {
-                    if (temp.charAt(i) != letters[count]) {
-                        hasQualLetters = false;
+                for (int count = 0; count < 9 && !hasQualLetters; count++) {
+                    if (temp.charAt(i) == letters[count]) {
+                        hasQualLetters = true;
                     }
-                }*/
-                System.out.println("mid letter " + hasMidLetter);
-                System.out.println("qual letters " + hasQualLetters);
-                // If both flags are true, then add the current word to the qualWords ArrayList
-                if (hasQualLetters == true && hasMidLetter == true) {
-                    qualWords.add(temp);
                 }
+                
+                // If a letter is invalid, then stop checking
+                if (hasQualLetters == false) {
+                    break;
+                }
+            }
+            // If both flags are true, then add the current word to the qualWords ArrayList
+            if (hasQualLetters == true && hasMidLetter == true) {
+                qualWords.add(temp);
             }
         }
         words.close();
@@ -105,20 +111,21 @@ public class Lexathon {
                         score++; // Update the score
                         foundWords.add(userWord); // Add userWord to the foundWords ArrayList
                         System.out.println("Nice job! You found " + foundWords.size() + 
-                                " of " + qualWords.size() + "words.\n");
+                                " of " + qualWords.size() + " words.\n");
                         
                         break;
                     }
                 }
-                
                 // If userWord does not match with one of the qualified words...
                 if (match == false) {
                     System.out.println("This word does not qualify. Try again!"); // Display an error
+                }
+                else {
+                    match = false; // Reset match flag to true
                 }
             }
         }
         
         System.out.println("Your final score is: " + score + "\n"); // Display final score after quitting game
-    }
-    
+    }    
 }
