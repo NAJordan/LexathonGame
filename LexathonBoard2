@@ -1,9 +1,17 @@
 	.data
 letters: .ascii "\0\0\0\0\0\0\0\0\0"
+vowels: .ascii "a\e\i\o\u"
 endl: .asciiz "\n"
+border: .asciiz "======="
+vert: .asciiz "|"
 
 	.text
-	li $s0, 0
+	li $v0, 4
+	la $a0, border
+	syscall #outputs top border
+	la $a0, endl
+	syscall
+	li $s0, 0 #int i = 0
 
 fillboard:
 	bge $s0, 9, exit
@@ -18,13 +26,21 @@ fillboard:
 	sb $v0, ($t3) 
 	addi $s0, $s0, 1 #i++
 	j fillboard
+	
+##checkVow:
+#li $s0, 0
+#	la $t1, letters
+#	add $t3, $t1, $s0
+	
 
 exit:
 	li $s1, 0 #i
 
 printboard:
 	bge $s1, 9, end
-	
+	li $v0, 4
+	la $a0, vert
+	syscall #adds vert lines between chars
 	la $s2, letters 
 	#sll $t4, $s1, 2
 	add $t5, $s2, $s1	#address of letters[i]
@@ -37,15 +53,20 @@ printboard:
 	addi $s1, $s1, 1 	#i++
 	
 	rem $t6, $s1, 3
-	beq $t6, $0, endline
+	beq $t6, $0, endline #nedsline after every third char
 	j printboard
 
 endline:
 	li $v0, 4
+	la $a0, vert
+	syscall  #outputs last vertical line
 	la $a0, endl
-	syscall
+	syscall #endsline
 	j printboard
 
 end:
+	li $v0, 4
+	la $a0, border 
+	syscall #outputs bottom border
 	li $v0, 10
 	syscall
