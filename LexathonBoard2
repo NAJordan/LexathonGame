@@ -1,0 +1,51 @@
+	.data
+letters: .ascii "\0\0\0\0\0\0\0\0\0"
+endl: .asciiz "\n"
+
+	.text
+	li $s0, 0
+
+fillboard:
+	bge $s0, 9, exit
+	li $a1, 26
+	li $v0, 42
+	syscall #generates random number for char
+
+	addi $v0, $a0, 97 #puts random int in proper ASCII range
+	la $t1, letters 
+	#sll $t2, $s0, 2
+	add $t3, $t1, $s0 #address of letters[i]
+	sb $v0, ($t3) 
+	addi $s0, $s0, 1 #i++
+	j fillboard
+
+exit:
+	li $s1, 0 #i
+
+printboard:
+	bge $s1, 9, end
+	
+	la $s2, letters 
+	#sll $t4, $s1, 2
+	add $t5, $s2, $s1	#address of letters[i]
+	
+	lb $t5, ($t5)
+	move $a0, $t5 		# $a0 =  charAt(i)
+	li $v0, 11 		#output char
+	syscall 		#outputs char
+	
+	addi $s1, $s1, 1 	#i++
+	
+	rem $t6, $s1, 3
+	beq $t6, $0, endline
+	j printboard
+
+endline:
+	li $v0, 4
+	la $a0, endl
+	syscall
+	j printboard
+
+end:
+	li $v0, 10
+	syscall
