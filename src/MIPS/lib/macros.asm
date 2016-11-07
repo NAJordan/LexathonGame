@@ -9,7 +9,9 @@
 # Macro list: Some macros contain variations to accept different types of parameters
 #
 # - push_stack
+# - push_stackf
 # - pop_stack
+# - pop_stackf
 # - increment
 # - decrement
 # - return
@@ -120,6 +122,40 @@
 		sw		$reg0, ($sp)
 		.end_macro
 
+
+# ===========================================================================
+# Macro~: push_stackf
+# Description: Pushes listed floating point registers onto the stack
+# Parameters: 
+#	$reg0: Register to push onto the stack 
+#	[$reg1 - $reg3]: Additional registers to push onto the stack
+# ===========================================================================
+		.macro push_stackf($reg0, $reg1, $reg2, $reg3)
+		sub		$sp, $sp, 16
+		swc1		$reg0, ($sp)
+		swc1		$reg1, 4($sp)
+		swc1		$reg2, 8($sp)
+		swc1		$reg3, 12($sp)
+		.end_macro
+
+		.macro push_stackf($reg0, $reg1, $reg2)
+		sub		$sp, $sp, 12
+		swc1		$reg0, ($sp)
+		swc1		$reg1, 4($sp)
+		swc1		$reg2, 8($sp)
+		.end_macro		
+
+		.macro push_stackf($reg0, $reg1)
+		sub		$sp, $sp, 8
+		swc1		$reg0, ($sp)
+		swc1		$reg1, 4($sp)
+		.end_macro
+
+		.macro push_stackf($reg0)
+		sub		$sp, $sp, 4
+		swc1		$reg0, ($sp)
+		.end_macro
+
 # ===========================================================================
 # Macro~: pop_stack
 # Description: Pops listed registers from the stack
@@ -219,6 +255,40 @@
 
 		.macro pop_stack($reg0)
 		lw		$reg0, ($sp)
+		add		$sp, $sp, 4
+		.end_macro
+
+
+# ===========================================================================
+# Macro~: pop_stackf
+# Description: Pops listed floating point registers from the stack
+# Parameters: 
+#	$reg0: Register to pop from the stack
+#	[$reg1 - $reg9]: Additional registers to pop from the stack
+# ===========================================================================		
+		.macro pop_stackf($reg0, $reg1, $reg2, $reg3)
+		lwc1		$reg0, ($sp)
+		lwc1		$reg1, 4($sp)
+		lwc1		$reg2, 8($sp)
+		lwc1		$reg3, 12($sp)
+		add		$sp, $sp, 16
+		.end_macro
+
+		.macro pop_stackf($reg0, $reg1, $reg2)
+		lwc1		$reg0, ($sp)
+		lwc1		$reg1, 4($sp)
+		lwc1		$reg2, 8($sp)
+		add		$sp, $sp, 12
+		.end_macro		
+
+		.macro pop_stackf($reg0, $reg1)
+		lwc1		$reg0, ($sp)
+		lwc1		$reg1, 4($sp)
+		add		$sp, $sp, 8
+		.end_macro
+
+		.macro pop_stackf($reg0)
+		lwc1		$reg0, ($sp)
 		add		$sp, $sp, 4
 		.end_macro
 

@@ -3,7 +3,7 @@
 # Class: CS 3340.501
 # Description: This file implements commonly used macros used for assignments and projects
 # Dependencies: macros.asm
-# Notes: Return value registers are NOT saved prior to macro invocation. The caller is responsible to save those registers if the value is to be retained.
+# Notes: Return value registers are NOT saved prior to macro invocation ($v0, $v1, $f0, $f1). The caller is responsible to save those registers if the value is to be retained.
 #	 Search for the tilde character ‘~’ to easily search for macro implementation.
 #
 # Macro list: Some macros contain variations to accept different types of parameters
@@ -14,15 +14,15 @@
 # - print_intu
 # - print_intHex
 # - print_intBin
-# - print_float*
-# - print_double*
+# - print_float
+# - print_double
 # - print_str
 # - print_char
 #
 # Reading Services:
 # - read_int
-# - read_float*
-# - read_double*
+# - read_float
+# - read_double
 # - read_str
 # - read_char
 #
@@ -47,9 +47,6 @@
 # - sleep
 # - sbrk
 # - exit
-#
-# Heper Macros:
-
 #
 # ===========================================================================
 
@@ -88,15 +85,47 @@
 		.end_macro
 
 # ===========================================================================
-# Macro~: print_Bin
+# Macro~: print_intBin
 # Description: Prints the binary representation of an iinteger value to the console
 # Parameters: 
 #	$register: The value that will be outputted to the console
 # ===========================================================================		
 		.macro print_intBin($register)
 		SYSCALL_PRIVATE_InvokeSyscall($register, $a0, 35)	
+		.end_macro
+
+# ===========================================================================
+# Macro~: print_float
+# Description: Prints the floating point value to the console
+# Parameters: 
+#	$register: The value that will be outputted to the console
+# ===========================================================================		
+		.macro print_float($register)
+		push_stackf($f12)
+		
+		mov.s		$f12, $register
+		li 		$v0, 2
+		syscall
+		
+		pop_stackf($f12)	
 		.end_macro																
-																	
+																																								
+# ===========================================================================
+# Macro~: print_double
+# Description: Prints the double value to the console
+# Parameters: 
+#	$register: The value that will be outputted to the console
+# ===========================================================================		
+		.macro print_double($register)
+		push_stackf($f12)
+		
+		mov.d		$f12, $register
+		li 		$v0, 3
+		syscall
+		
+		pop_stackf($f12)
+		.end_macro		
+																																																																																														
 # ===========================================================================
 # Macro~: print_str
 # Description: Prints a string to the console
@@ -151,6 +180,30 @@ ps_str:		.asciiz		$str
 		li 		$v0, 5
 		syscall
 		move		$register, $v0
+		.end_macro
+
+# ===========================================================================
+# Macro~: read_float
+# Description: Reads an float from the console
+# Parameters: 
+#	$register: The register to store the read value
+# ===========================================================================	
+		.macro read_float($register)
+		li 		$v0, 6
+		syscall
+		mov.s		$register, $f0
+		.end_macro
+
+# ===========================================================================
+# Macro~: read_double
+# Description: Reads an double from the console
+# Parameters: 
+#	$register: The register to store the read value
+# ===========================================================================	
+		.macro read_double($register)
+		li 		$v0, 7
+		syscall
+		mov.d		$register, $f0
 		.end_macro
 
 # ===========================================================================
