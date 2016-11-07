@@ -28,8 +28,8 @@
 #
 # File Services:
 # - file_open
-# - file_read*
-# - file_write*
+# - file_read
+# - file_write
 # - file_close
 #
 # Random Number Generation Services:
@@ -262,6 +262,33 @@ fopenli_file:	.asciiz		$filename
 		
 
 # ===========================================================================
+# Macro~: file_read
+# Description: Reads the bytes from the file into a buffer
+# file_read - Parameters: 
+#	$fd: A register that contains the file descriptor
+#	$buffer: A register that contians the address of the input buffer
+#	$maxChars: A register that contains the value of the maximum number of characters to read
+# Return Value: The amount of characters read in $v0. Negative if error
+# ===========================================================================
+		.macro file_read($fd, $buffer, $maxChars)
+		SYSCALL_PRIVATE_InvokeSyscall($fd, $buffer, $maxChars, $a0, $a1, $a0, 14)
+		.end_macro
+		
+
+# ===========================================================================
+# Macro~: file_write
+# Description: Writes the bytes from a buffer to a file
+# file_write - Parameters: 
+#	$fd: A register that contains the file descriptor
+#	$buffer: A register that contians the address of the output buffer
+#	$maxChars: A register that contains the value of the maximum number of characters to write
+# Return Value: The amount of characters read in $v0. Negative if error
+# ===========================================================================
+		.macro file_write($fd, $buffer, $maxChars)
+		SYSCALL_PRIVATE_InvokeSyscall($fd, $buffer, $maxChars, $a0, $a1, $a0, 15)
+		.end_macro
+
+# ===========================================================================
 # Macro~: file_close
 # Description: Closes the file descriptor accociated with the file
 # fclose - Parameters: 
@@ -431,14 +458,19 @@ fopenli_file:	.asciiz		$filename
 # Private macros used by the syscall.asm library
 # ===========================================================================
 		.macro SYSCALL_PRIVATE_InvokeSyscall($argument, $syscallArgument, $syscallCode)
-		SYSCALL_PRIVATE_InvokeSyscall($argument, $zero, $syscallArgument, $zero, $syscallCode)	
+		SYSCALL_PRIVATE_InvokeSyscall($argument, $zero, $zero, $syscallArgument, $zero, $zero, $syscallCode)	
 		.end_macro
 		
 		.macro SYSCALL_PRIVATE_InvokeSyscall($arg0, $arg1, $syscallArg0, $syscallArg1, $syscallCode)
-		push_stack($syscallArg0, $syscallArg1)	
+		SYSCALL_PRIVATE_InvokeSyscall($arg0, $arg1, $zero, $syscallArg0, $syscallArg1, $zero, $syscallCode)	
+		.end_macro
+		
+		.macro SYSCALL_PRIVATE_InvokeSyscall($arg0, $arg1, $arg2, $syscallArg0, $syscallArg1, $syscallArg2, $syscallCode)
+		push_stack($syscallArg0, $syscallArg1, $syscallArg2)	
 		move		$syscallArg0, $arg0
 		move		$syscallArg1, $arg1
+		move		$syscallArg2, $arg2
 		li 		$v0, $syscallCode
 		syscall
-		pop_stack($syscallArg0, $syscallArg1)	
+		pop_stack($syscallArg0, $syscallArg1, $syscallArg2)	
 		.end_macro
