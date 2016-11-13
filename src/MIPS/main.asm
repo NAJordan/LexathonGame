@@ -4,6 +4,7 @@
 # ===========================================================================
 		.include 	"lib/macros.asm"
 		.include 	"lib/syscall.asm"
+		.include        "lib/c-library.asm"
 		.globl		main
 
 # ***************************************************************************
@@ -24,6 +25,7 @@ letters:	.space		9			# Address: 0x100107D0
 		.text
 main:
 		call(newGame)
+		call(printUI)
 		call(gameLoop)
 		exit()
 
@@ -117,8 +119,34 @@ printUI: # Current corresponding java code
 # if (((count + 1) % 3) == 0) {
 #     System.out.println();
 # }
-
-
+		arrayIndex(letters, 0)
+		move $t0, $v0
+		arrayIndex(letters, 1)
+		move $t1, $v0		
+		arrayIndex(letters, 2)
+		move $t2, $v0		
+		printf(" --- --- --- \n")
+		printf("| %c | %c | %c |\n", $t0, $t1, $t2)
+		printf(" --- --- --- \n")
+		
+		arrayIndex(letters, 3)
+		move $t0, $v0
+		arrayIndex(letters, 4)
+		move $t1, $v0		
+		arrayIndex(letters, 5)
+		move $t2, $v0		
+		printf("| %c | %c | %c |\n", $t0, $t1, $t2)
+		printf(" --- --- --- \n")
+				
+		arrayIndex(letters, 6)
+		move $t0, $v0
+		arrayIndex(letters, 7)
+		move $t1, $v0		
+		arrayIndex(letters, 8)
+		move $t2, $v0						
+		printf("| %c | %c | %c |\n", $t0, $t1, $t2)
+		printf(" --- --- --- \n")		
+		
 		jr		$ra
 
 # ===========================================================================
