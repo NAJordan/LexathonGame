@@ -4,7 +4,7 @@
 # Description: This file implements commonly used macros used for assignments and projects
 # Dependencies: macros.asm
 # Notes: Return value registers are NOT saved prior to macro invocation ($v0, $v1, $f0, $f1). The caller is responsible to save those registers if the value is to be retained.
-#	 Search for the tilde character ‘~’ to easily search for macro implementation.
+#	 Search for the tilde character ï¿½~ï¿½ to easily search for macro implementation.
 #
 # Macro list: Some macros contain variations to accept different types of parameters
 # * = Not implemented yet
@@ -268,13 +268,22 @@ fopenli_file:	.asciiz		$filename
 #	$fd: A register that contains the file descriptor
 #	$buffer: A register that contians the address of the input buffer
 #	$maxChars: A register that contains the value of the maximum number of characters to read
+# file_readi - Parameters: 
+#	$maxChars: An immediate value of the maximum number of characters to read
 # Return Value: The amount of characters read in $v0. Negative if error
 # ===========================================================================
 		.macro file_read($fd, $buffer, $maxChars)
-		SYSCALL_PRIVATE_InvokeSyscall($fd, $buffer, $maxChars, $a0, $a1, $a0, 14)
+		SYSCALL_PRIVATE_InvokeSyscall($fd, $buffer, $maxChars, $a0, $a1, $a2, 14)
 		.end_macro
 		
-
+		.macro file_readi($fd, $buffer, $maxChars)
+		push_stack($t0, $t1, $t2)
+		move		$t0, $fd
+		move		$t1, $buffer
+		li		$t2, $maxChars
+		file_read($t0, $t1, $t2)
+		pop_stack($t0, $t1, $t2)
+		.end_macro
 # ===========================================================================
 # Macro~: file_write
 # Description: Writes the bytes from a buffer to a file
@@ -285,7 +294,7 @@ fopenli_file:	.asciiz		$filename
 # Return Value: The amount of characters read in $v0. Negative if error
 # ===========================================================================
 		.macro file_write($fd, $buffer, $maxChars)
-		SYSCALL_PRIVATE_InvokeSyscall($fd, $buffer, $maxChars, $a0, $a1, $a0, 15)
+		SYSCALL_PRIVATE_InvokeSyscall($fd, $buffer, $maxChars, $a0, $a1, $a2, 15)
 		.end_macro
 
 # ===========================================================================
@@ -295,7 +304,7 @@ fopenli_file:	.asciiz		$filename
 #	$fd: A register that contains the file descriptor
 # ===========================================================================
 		.macro file_close($fd)
-		SYSCALL_PRIVATE_InvokeSyscall($stream, $a0, 16)	
+		SYSCALL_PRIVATE_InvokeSyscall($fd, $a0, 16)	
 		.end_macro
 
 
@@ -420,11 +429,20 @@ fopenli_file:	.asciiz		$filename
 # ===========================================================================
 # Macro~: sbrk
 # Description: Allocates heap memory
-# Parameters: 
-#	$register: Number of bytes to allocate
+# sbrk - Parameters: 
+#	$value: A register that contains the number of bytes to allocate
+# sbrki - Parameters: 
+#	$value: An immediate value of the number of bytes to allocate
 # ===========================================================================		
-		.macro sbrk($register)
-		SYSCALL_PRIVATE_InvokeSyscall($register, $a0, 9)	
+		.macro sbrk($value)
+		SYSCALL_PRIVATE_InvokeSyscall($value, $a0, 9)	
+		.end_macro
+
+		.macro sbrki($value)
+		push_stack($a0)
+		li		$a0, $value
+		sbrk($a0)	
+		pop_stack($a0)
 		.end_macro
 
 # ===========================================================================

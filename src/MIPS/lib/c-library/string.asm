@@ -4,7 +4,7 @@
 # Description: This file implements functionality from the c standard library using a macro interface
 # Dependencies: macros.asm
 # Notes: Return value registers are NOT saved prior to macro invocation. The caller is responsible to save those registers if the value is to be retained.
-#	 Search for the tilde character ‘~’ to easily search for macro implementation.
+#	 Search for the tilde character ï¿½~ï¿½ to easily search for macro implementation.
 #
 # Macro list: Some macros contain variations to accept different types of parameters
 #
@@ -15,13 +15,11 @@
 # ===========================================================================
 
 # ===========================================================================
-# Macro~: strcmp****************
-# Description: Computes the length of the string up to, but not including the terminating null character
-# strlen - Parameters: 
-#	$str: A register that contains the address of the string whose length is to be computed
-# strlenl - Parameters: 
-#	$str: A label to the address of the string whose length is to be computed
-# Return Value: The length of the string stored in $v0
+# Macro~: strcmp
+# Description: Compares the str1 to str2
+# Parameters: 
+#	$str1, $str2: A register that contains the address of the string that is to be compaired
+# Return Value: The comparison result stored in $v0. 0 if strings are equal, 1 if str1 lexical order is greater than str2, and -1 if str1 lexical order is less than str2
 # ===========================================================================
 		.macro strcmp($str1, $str2)
 		.eqv		CLIB_strcmp_strAddress1 $a0
