@@ -4,7 +4,7 @@
 # Description: This file implements commonly used macros used for assignments and projects
 # Dependencies: None
 # Notes: Return value registers are NOT saved prior to macro invocation. The caller is responsible to save those registers if the value is to be retained.
-#	 Search for the tilde character ‘~’ to easily search for macro implementation.
+#	 Search for the tilde character '~' to easily search for macro implementation.
 #
 # Macro list: Some macros contain variations to accept different types of parameters
 #
@@ -18,6 +18,8 @@
 # - call
 # - for
 # - clearArray
+# - arrayIndex
+# - breakLoop
 # ===========================================================================
 
 # ===========================================================================
@@ -420,4 +422,34 @@ bodyEnd:
 		li		$a0, $size
 		clearArray($array, $a0)
 		pop_stack($a0)
+		.end_macro
+
+# ===========================================================================
+# Macro~: arrayIndex
+# Description: Returns the contents of an array at the specified index
+# Parameters: 
+#	$array: A label that stores the address of an array
+#	$index: An immediate value of contents of the index to access
+# Return Value: The contents of the array in $v0
+# ===========================================================================
+		.macro arrayIndex($array, $index)
+		push_stack($t0)
+		
+		la		$t0, $array
+		add		$t0, $t0, $index
+		lb		$v0, ($t0)
+		
+		pop_stack($t0)
+		.end_macro
+
+# ===========================================================================
+# Macro~: breakLoop
+# Description: Breaks flow of control from the current loop
+# Parameters: 
+#	$label: The ending label of the loop
+#	$iterator: The register iterator used in the loop
+# ===========================================================================
+		.macro breakLoop($label, $iterator)
+		pop_stack($iterator)
+		j		$label
 		.end_macro
