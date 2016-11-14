@@ -4,21 +4,24 @@
 # Description: This file implements functionality from the c standard library using a macro interface
 # Dependencies: macros.asm
 # Notes: Return value registers are NOT saved prior to macro invocation. The caller is responsible to save those registers if the value is to be retained.
-#	 Search for the tilde character �~� to easily search for macro implementation.
+#	 Search for the tilde character '~' to easily search for macro implementation.
 #
 # Macro list: Some macros contain variations to accept different types of parameters
 #
 # - printf
 
 # ===========================================================================
-		.eqv 		ASCII_PERCENT 0x25
-		.eqv		ASCII_LF      0x0A
-		.eqv		ASCII_D	0x64
-		.eqv		ASCII_I 0x69
-		.eqv		ASCII_C 0x63
-		.eqv		ASCII_F 0x66
-		.eqv		ASCII_S 0x73
-		.eqv		ASCII_U 0x75		
+		.eqv 		ASCII_PERCENT 	0x25
+		.eqv		ASCII_LF      	0x0A
+		.eqv		ASCII_A		0x61
+		.eqv		ASCII_D		0x64
+		.eqv		ASCII_E		0x65
+		.eqv		ASCII_I 	0x69
+		.eqv		ASCII_C 	0x63
+		.eqv		ASCII_F 	0x66
+		.eqv		ASCII_O		0x6F
+		.eqv		ASCII_S 	0x73
+		.eqv		ASCII_U 	0x75		
 		
 # ===========================================================================
 # Macro~: printf

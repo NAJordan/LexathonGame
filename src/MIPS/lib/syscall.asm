@@ -4,7 +4,7 @@
 # Description: This file implements commonly used macros used for assignments and projects
 # Dependencies: macros.asm
 # Notes: Return value registers are NOT saved prior to macro invocation ($v0, $v1, $f0, $f1). The caller is responsible to save those registers if the value is to be retained.
-#	 Search for the tilde character �~� to easily search for macro implementation.
+#	 Search for the tilde character '~' to easily search for macro implementation.
 #
 # Macro list: Some macros contain variations to accept different types of parameters
 # * = Not implemented yet
@@ -209,12 +209,23 @@ ps_str:		.asciiz		$str
 # ===========================================================================
 # Macro~: read_str
 # Description: Reads a string from the console
-# Parameters: 
+# read_str - Parameters: 
 #	$address: The register that contains the address of the buffer
 #	$maxCharsRead: The register that contains the value of the maximum number of characters to be read
+# read_stri - Parameters: 
+#	$address: The register that contains the address of the buffer
+#	$maxCharsRead: An immediate value of the maximum number of characters to be read
 # ===========================================================================	
 		.macro read_str($address, $maxCharsRead)
 		SYSCALL_PRIVATE_InvokeSyscall($address, $maxCharsRead, $a0, $a1, 8)
+		.end_macro
+		
+		.macro read_stri($address, $maxCharsRead)
+		push_stack($a0, $a1)
+		move		$a0, $address
+		li		$a1, $maxCharsRead
+		read_str($a0, $a1)
+		pop_stack($a0, $a1)
 		.end_macro
 
 # ===========================================================================
