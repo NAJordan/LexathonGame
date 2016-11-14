@@ -27,9 +27,9 @@ GENERAL LEXATHON ALGORITHM:
 
 LATEST VERSION NOTES:
 
-1. Letter shuffling works.
-2. Vowel enforcement works.
-3. Repeated qualified words now return a unique error.
+1. Each correct word adds 2 * word length
+2. The board display is in its own function
+3. The board gets displayed after every user input
 4. The file path is local to Brian's computer.
 5. Still need to account for time.
 */
@@ -53,15 +53,7 @@ public class Lexathon {
             }
         } while (hasVowel == false);
         
-        // Display the letters in a 3x3 format
-        for (int count = 0; count < 9; count++) {
-            System.out.print(letters[count] + " ");
-            
-            // If a row has 3 letters, start on a new line
-            if (((count + 1) % 3) == 0) {
-                System.out.println();
-            }
-        }
+        displayBoard(letters);
         
         List<String> qualWords = new ArrayList<String>(); // Initializes an ArrayList for qualified words
         List<String> foundWords = new ArrayList<String>(); // Initializes an ArrayList for found words
@@ -137,15 +129,7 @@ public class Lexathon {
                      
                 }
                 
-                // Display the letters in a 3x3 format
-                for (int count = 0; count < 9; count++) {
-                    System.out.print(letters[count] + " ");
-            
-                    // If a row has 3 letters, start on a new line
-                    if (((count + 1) % 3) == 0) {
-                        System.out.println();
-                    }
-                }
+                displayBoard(letters);
             }
             // Otherwise...
             else {
@@ -153,8 +137,9 @@ public class Lexathon {
                 // If userWord matches with one of the found words...
                 for (String s: foundWords) {
                     if (userWord.equals(s)) {
-                        System.out.println(userWord + " has already been found!");
+                        System.out.println(userWord + " has already been found!\n");
                         alreadyFound = true;
+                        displayBoard(letters);
                         break;
                     }
                 }
@@ -166,24 +151,38 @@ public class Lexathon {
                 for (String s: qualWords) {
                     if (userWord.equals(s)) {
                         match = true; // Update the flag
-                        score++; // Update the score
+                        score += 2 * userWord.length(); // Update the score
                         foundWords.add(userWord); // Add userWord to the foundWords ArrayList
                         System.out.println("Nice job! You found " + foundWords.size() + 
                                 " of " + qualWords.size() + " words.\n");
+                        displayBoard(letters);
                         
                         break;
                     }
                 }
                 // If userWord does not match with one of the qualified words...
                 if (match == false) {
-                    System.out.println("This word does not qualify. Try again!"); // Display an error
+                    System.out.println("This word does not qualify. Try again!\n"); // Display an error
+                    displayBoard(letters);
                 }
                 else {
-                    match = false; // Reset match flag to true
+                    match = false; // Reset match flag to false
                 }
             }
         }
         
         System.out.println("Your final score is: " + score + "\n"); // Display final score after quitting game
-    }    
+    }  
+    
+    public static void displayBoard(char[] letters) {
+        // Display the letters in a 3x3 format
+        for (int count = 0; count < 9; count++) {
+            System.out.print(letters[count] + " ");
+            
+            // If a row has 3 letters, start on a new line
+            if (((count + 1) % 3) == 0) {
+                System.out.println();
+            }
+        }
+    }
 }
