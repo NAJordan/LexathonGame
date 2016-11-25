@@ -37,8 +37,8 @@
 # - random_setSeed
 # - random_int
 # - random_intRange
-# - random_float*
-# - random_double*
+# - random_float
+# - random_double
 #
 # Miscellaneous Services:
 # - midi_out*
@@ -148,14 +148,6 @@
 		pop_stack($a0)
 		.end_macro
 
-		.macro print_strl($str)
-		.data
-ps_str:		.asciiz		$str
-		.text
-		
-		print_stra(ps_str)	
-		.end_macro
-
 # ===========================================================================
 # Macro~: print_char
 # Description: Prints a character to the console
@@ -250,8 +242,11 @@ ps_str:		.asciiz		$str
 # file_open - Parameters: 
 #	$filename: A register that contains the address to a string that contains the path to the file
 #	$mode: A register value value of 0 (read), 1 (write), or 9 (append)
-# file_openli - Parameters: 
+# file_openai - Parameters: 
 #	$filename: A label to of the string that contains the path to the file
+#	$mode: An immediate value of 0 (read), 1 (write), or 9 (append)
+# file_openli - Parameters: 
+#	$filename: A string literal that contains the path to the file
 #	$mode: An immediate value of 0 (read), 1 (write), or 9 (append)
 # Return Value: The file descriptor in $v0
 # ===========================================================================
@@ -259,16 +254,20 @@ ps_str:		.asciiz		$str
 		SYSCALL_PRIVATE_InvokeSyscall($filename, $mode, $a0, $a1, 13)	 # $a2 is ignored		
 		.end_macro
 
+		.macro file_openai($filename, $mode)
+		push_stack($t0, $t1)
+		la		$t0, $filename
+		li		$t1, $mode
+		file_open($t0, $t1)
+		pop_stack($t0, $t1)	
+		.end_macro
+
 		.macro file_openli($filename, $mode)
 		.data
 fopenli_file:	.asciiz		$filename
 		.text
 		
-		push_stack($t0, $t1)
-		la		$t0, fopenli_file
-		li		$t1, $mode
-		file_open($t0, $t1)
-		pop_stack($t0, $t1)	
+		file_openai(fopenli_file, $mode)	
 		.end_macro
 		
 
@@ -336,7 +335,7 @@ fopenli_file:	.asciiz		$filename
 
 		.macro random_initl($id)
 		push_stack($a0)
-		la		$a0, $id
+		lw		$a0, $id
 		time()
 		random_setSeed($a0, $v0)
 		pop_stack($a0)
@@ -392,12 +391,51 @@ fopenli_file:	.asciiz		$filename
 
 		.macro random_intRangeli($id, $upperBound)
 		push_stack($a0, $a1)
-		la		$a0, $id
+		lw		$a0, $id
 		li		$a1, $upperBound
 		random_intRange($a0, $a1)
 		pop_stack($a0, $a1)
 		.end_macro
 
+# ===========================================================================
+# Macro~: random_float
+# Description: Generates a random floating point value
+# random_float - Parameters: 
+#	$id: The register that stores the id of the pseudorandom number generator
+# random_floatl - Parameters: 
+#	$id: The label that points to the id of the pseudorandom number generator
+# Return Value: A random number in $f0
+# ===========================================================================	
+		.macro random_float($id)
+		SYSCALL_PRIVATE_InvokeSyscall($id, $a0, 43)
+		.end_macro
+
+		.macro random_floatl($id)
+		push_stack($a0)
+		lw		$a0, $id
+		SYSCALL_PRIVATE_InvokeSyscall($a0, $a0, 43)
+		pop_stack($a0)
+		.end_macro
+
+# ===========================================================================
+# Macro~: random_double
+# Description: Generates a random double value
+# random_double - Parameters: 
+#	$id: The register that stores the id of the pseudorandom number generator
+# random_doublel - Parameters: 
+#	$id: The label that points to the id of the pseudorandom number generator
+# Return Value: A random number in $f0
+# ===========================================================================	
+		.macro random_double($id)
+		SYSCALL_PRIVATE_InvokeSyscall($id, $a0, 44)
+		.end_macro
+
+		.macro random_doublel($id)
+		push_stack($a0)
+		lw		$a0, $id
+		SYSCALL_PRIVATE_InvokeSyscall($a0, $a0, 44)
+		pop_stack($a0)
+		.end_macro
 
 # ***************************************************************************
 # Miscellaneous Services

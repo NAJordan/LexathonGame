@@ -11,6 +11,8 @@
 # - printf
 
 # ===========================================================================
+
+		.eqv		ASCII_NULL	0x00
 		.eqv 		ASCII_PERCENT 	0x25
 		.eqv		ASCII_LF      	0x0A
 		.eqv		ASCII_A		0x61
@@ -26,7 +28,7 @@
 # ===========================================================================
 # Macro~: printf
 # Description: To be written. Currently does not fully implement printf.
-# Remarks: Supported flags %, c, d, i
+# Remarks: Supported flags %, c, d, i, s
 # strlen - Parameters: 
 #	$format: A label to a string that specifies how to interpret the data
 #	$arg0 - $arg3: Register arguments
@@ -49,6 +51,7 @@ pf_format:	.asciiz		$format
 		move		$a3, $arg3
 
 		li		CLIB_printf_counter, 0
+		li		CLIB_printf_foundToken, 0
 		li		CLIB_printf_argumentPointer, 0
 		lb		CLIB_printf_char, pf_format
 		

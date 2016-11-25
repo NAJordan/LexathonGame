@@ -16,8 +16,11 @@
 # ===========================================================================
 # Macro~: strcmp
 # Description: Compares the str1 to str2
-# Parameters: 
+# strcmp - Parameters: 
 #	$str1, $str2: A register that contains the address of the string that is to be compaired
+# strcmpl - Parameters: 
+#	$str1: A register that contains the address of the string that is to be compaired
+#	$str2: A label that contains the address of the string that is to be compaired
 # Return Value: The comparison result stored in $v0. 0 if strings are equal, 1 if str1 lexical order is greater than str2, and -1 if str1 lexical order is less than str2
 # ===========================================================================
 		.macro strcmp($str1, $str2)
@@ -58,6 +61,14 @@ strcmp_less:	# $str1 < $str2
 
 strcmp_exit:
 		pop_stack(CLIB_strcmp_strAddress1, CLIB_strcmp_strAddress2, CLIB_strcmp_char1, CLIB_strcmp_char2, $t2)
+		.end_macro
+		
+		.macro strcmpl($str1, $str2)
+		push_stack($a0, $a1)
+		move		$a0, $str1
+		la		$a1, $str2
+		strcmp($a0, $a1)
+		pop_stack($a0, $a1)
 		.end_macro
 		
 
