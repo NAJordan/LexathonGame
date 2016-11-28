@@ -3,8 +3,8 @@
 # Class: CS 3340.501
 # Description: This file implements commonly used macros used for assignments and projects
 # Dependencies: None
-# Notes: Return value registers are NOT saved prior to macro invocation. The caller is responsible to save those registers if the value is to be retained.
-#	 Search for the tilde character ‘~’ to easily search for macro implementation.
+# Notes: Return value registers are NOT saved prior to macro invocation ($v0, $v1, $f0, $f1). The caller is responsible to save those registers if the value is to be retained.
+#	 Search for the tilde character '~' to easily search for macro implementation.
 #
 # Macro list: Some macros contain variations to accept different types of parameters
 #
@@ -13,11 +13,21 @@
 # - pop_stack
 # - pop_stackf
 # - increment
+# - incrementwl
+# - incrementfl
 # - decrement
+# - decrementwl
+# - decrementfl
 # - return
 # - call
 # - for
+# - breakLoop
 # - clearArray
+# - arrayIndex
+# - setWord
+# - setFloat
+# - getWord
+# - getFloat
 # ===========================================================================
 
 # ===========================================================================
@@ -308,6 +318,40 @@
 		.end_macro
 
 # ===========================================================================
+# Macro~: incrementwl
+# Description: Increments the word at the label address by the specified amount.
+# Parameters: 
+#	$register: Word to increment
+# 	[$amount]: The amount to add to the variable. If not specified, the default value is 1.
+# ===========================================================================
+		.macro incrementwl($label, $amount)
+		push_stack($a0)
+		lw		$a0, $label
+		increment($a0, $amount)
+		sw		$a0, $label
+		pop_stack($a0)
+		.end_macro
+
+		.macro incrementwl($label)
+		incrementwl($label, 1)
+		.end_macro
+
+# ===========================================================================
+# Macro~: incrementfl
+# Description: Increments the floating point register by the specified amount.
+# Parameters: 
+#	$label: A label to the float to increment
+# 	$amount: The amount to add to $label.
+# ===========================================================================
+		.macro incrementfl($label, $amount)
+		push_stackf($f2)
+		l.s		$f2, $label
+		add.s		$f2, $f2, $amount
+		swc1		$f2, $label
+		pop_stackf($f2)
+		.end_macro
+
+# ===========================================================================
 # Macro~: decrement
 # Description: Decrements the register by the specified amount.
 # Parameters: 
@@ -320,6 +364,40 @@
 
 		.macro decrement($register)
 		decrement($register, 1)
+		.end_macro
+
+# ===========================================================================
+# Macro~: decrementwl
+# Description: Decrements the word at the label address by the specified amount.
+# Parameters: 
+#	$register: Word to decrement
+# 	[$amount]: The amount to subtract to the variable. If not specified, the default value is 1.
+# ===========================================================================
+		.macro decrementwl($label, $amount)
+		push_stack($a0)
+		lw		$a0, $label
+		decrement($a0, $amount)
+		sw		$a0, $label
+		pop_stack($a0)
+		.end_macro
+
+		.macro decrementwl($label)
+		decrementwl($label, 1)
+		.end_macro
+
+# ===========================================================================
+# Macro~: decrementfl
+# Description: Decrements the floating point register by the specified amount.
+# Parameters: 
+#	$label: A label to the float to decrement
+# 	$amount: The amount to subtract from $label.
+# ===========================================================================
+		.macro decrementfl($label, $amount)
+		push_stackf($f2)
+		l.s		$f2, $label
+		sub.s		$f2, $f2, $amount
+		swc1		$f2, $label
+		pop_stackf($f2)
 		.end_macro
 
 # ===========================================================================
@@ -354,19 +432,27 @@
 		.end_macro
 		
 		.macro call($name, $arg0, $arg1, $arg2)
-		call($name, $arg0, $arg1, $arg2, $zero)
+		push_stack($ra, $arg0, $arg1, $arg2)
+		jal		$name
+		pop_stack($ra, $arg0, $arg1, $arg2)
 		.end_macro
 
 		.macro call($name, $arg0, $arg1)
-		call($name, $arg0, $arg1, $zero, $zero)
+		push_stack($ra, $arg0, $arg1)
+		jal		$name
+		pop_stack($ra, $arg0, $arg1)
 		.end_macro
 		
 		.macro call($name, $arg0)
-		call($name, $arg0, $zero, $zero, $zero)
+		push_stack($ra, $arg0)
+		jal		$name
+		pop_stack($ra, $arg0)
 		.end_macro
 		
 		.macro call($name)
-		call($name, $zero, $zero, $zero, $zero)
+		push_stack($ra)
+		jal		$name
+		pop_stack($ra)
 		.end_macro
 
 # ===========================================================================
@@ -376,20 +462,37 @@
 #	$iterator: A register that will be the loop counter
 #	$from: A register or immediate value that is the starting value of the loop counter
 #	$to: A register or immediate value that is the ending value of the loop counter
+#	[$step]: The value to increment the iterator. The default value is 1.
 #	$body: A label that defines the start of the loop
 #	$bodyEnd: A label that closes the body of the loop
 # ===========================================================================
-		.macro for($iterator, $from, $to, $body, $bodyEnd)
+		.macro for($iterator, $from, $to, $step, $body, $bodyEnd)
 		push_stack($iterator)
 		add		$iterator, $zero, $from
 		
 loop:
 		call($body)
-		increment($iterator)
-		ble		$iterator, $to, loop
+		increment($iterator, $step)
+		blt		$iterator, $to, loop
 		
 		pop_stack($iterator)
 		j		$bodyEnd
+		.end_macro
+
+		.macro for($iterator, $from, $to, $body, $bodyEnd)
+		for($iterator, $from, $to, 1, $body, $bodyEnd)
+		.end_macro
+
+# ===========================================================================
+# Macro~: breakLoop
+# Description: Breaks flow of control from the current loop
+# Parameters: 
+#	$label: The ending label of the loop
+#	$iterator: The register iterator used in the loop
+# ===========================================================================
+		.macro breakLoop($label, $iterator)
+		pop_stack($ra, $iterator)
+		j		$label
 		.end_macro
 
 # ===========================================================================
@@ -421,3 +524,82 @@ bodyEnd:
 		clearArray($array, $a0)
 		pop_stack($a0)
 		.end_macro
+
+# ===========================================================================
+# Macro~: arrayIndex
+# Description: Returns the contents of an array at the specified index
+# Parameters: 
+#	$array: A label that stores the address of an array
+#	$index: An immediate value of contents of the index to access
+#	$returnRegister: The register to store the return value
+# Return Value: The contents of the array at the specified index in $returnRegister
+# ===========================================================================
+		.macro arrayIndex($array, $index, $returnRegister)
+		push_stack($a0)
+		
+		la		$a0, $array
+		add		$a0, $a0, $index
+		lb		$returnRegister, ($a0)
+		
+		pop_stack($a0)
+		.end_macro
+
+# ===========================================================================
+# Macro~: setWord
+# Description: Sets the value of the word at the label address
+# Parameters: 
+#	$label: The label to the address of the word
+#	$value: The value to set the variable to
+# ===========================================================================
+		.macro setWord($label, $value)
+		push_stack($a0)
+		lw		$a0, $label
+		add		$a0, $zero, $value
+		sw		$a0, $label
+		pop_stack($a0)
+		.end_macro
+
+# ===========================================================================
+# Macro~: getWord
+# Description: Gets the value of the word at the label address
+# Parameters: 
+#	$label: The label to the address of the word
+# Return Value: The value of the word in $v0
+# ===========================================================================
+		.macro getWord($label)
+		push_stack($a0)
+		lw		$a0, $label
+		move		$v0, $a0
+		pop_stack($a0)
+		.end_macro
+
+# ===========================================================================
+# Macro~: setFloat
+# Description: Sets the value of the float at the label address
+# Parameters: 
+#	$label: The register value
+#	$value: The value to set the variable to
+# ===========================================================================
+		.macro setFloat($label, $value)
+		push_stackf($f0, $f2)
+		mtc1		$zero, $f2
+		lwc1		$f0, $label
+		add.s 		$f0, $f2, $value
+		swc1		$f0, $label
+		pop_stackf($f0, $f2)
+		.end_macro
+
+# ===========================================================================
+# Macro~: getFloat
+# Description: Gets the value of the float at the label address
+# Parameters: 
+#	$label: The label to the address of the float
+# Return Value: The value of the float in $f0
+# ===========================================================================
+		.macro getFloat($label)
+		push_stackf($f2)
+		lwc1		$f2, $label
+		mov.s		$f0, $f2
+		pop_stackf($f2)
+		.end_macro
+

@@ -4,24 +4,24 @@
 # Description: This file implements functionality from the c standard library using a macro interface
 # Dependencies: macros.asm
 # Notes: Return value registers are NOT saved prior to macro invocation. The caller is responsible to save those registers if the value is to be retained.
-#	 Search for the tilde character ‘~’ to easily search for macro implementation.
+#	 Search for the tilde character '~' to easily search for macro implementation.
 #
 # Macro list: Some macros contain variations to accept different types of parameters
 #
 # - strcmp
 # - strlen
-# - strstr
 
 # ===========================================================================
 
 # ===========================================================================
-# Macro~: strcmp****************
-# Description: Computes the length of the string up to, but not including the terminating null character
-# strlen - Parameters: 
-#	$str: A register that contains the address of the string whose length is to be computed
-# strlenl - Parameters: 
-#	$str: A label to the address of the string whose length is to be computed
-# Return Value: The length of the string stored in $v0
+# Macro~: strcmp
+# Description: Compares the str1 to str2
+# strcmp - Parameters: 
+#	$str1, $str2: A register that contains the address of the string that is to be compaired
+# strcmpl - Parameters: 
+#	$str1: A register that contains the address of the string that is to be compaired
+#	$str2: A label that contains the address of the string that is to be compaired
+# Return Value: The comparison result stored in $v0. 0 if strings are equal, 1 if str1 lexical order is greater than str2, and -1 if str1 lexical order is less than str2
 # ===========================================================================
 		.macro strcmp($str1, $str2)
 		.eqv		CLIB_strcmp_strAddress1 $a0
@@ -63,6 +63,14 @@ strcmp_exit:
 		pop_stack(CLIB_strcmp_strAddress1, CLIB_strcmp_strAddress2, CLIB_strcmp_char1, CLIB_strcmp_char2, $t2)
 		.end_macro
 		
+		.macro strcmpl($str1, $str2)
+		push_stack($a0, $a1)
+		move		$a0, $str1
+		la		$a1, $str2
+		strcmp($a0, $a1)
+		pop_stack($a0, $a1)
+		.end_macro
+		
 
 # ===========================================================================
 # Macro~: strlen
@@ -101,32 +109,3 @@ strlen_exit:
 		pop_stack($t0)	
 		.end_macro
 		
-# ===========================================================================
-# Macro~: strstr****************
-# Description: Computes the length of the string up to, but not including the terminating null character
-# strlen - Parameters: 
-#	$str: A register that contains the address of the string whose length is to be computed
-# strlenl - Parameters: 
-#	$str: A label to the address of the string whose length is to be computed
-# Return Value: The length of the string stored in $v0
-# ===========================================================================
-		.macro strstr($str1, $str2)
-		.eqv		CLIB_strcmp_strAddress1 $a0
-		.eqv		CLIB_strcmp_strAddress2 $a1
-		.eqv		CLIB_strcmp_char1 $t0
-		.eqv		CLIB_strcmp_char2 $t1
-		.eqv		CLIB_strcmp_strLen1 $t2
-		.eqv		CLIB_strcmp_strLen2 $t3
-		
-		push_stack(CLIB_strcmp_strAddress1, CLIB_strcmp_strAddress2, CLIB_strcmp_char1, CLIB_strcmp_char2)
-		
-		
-		
-		# if len(str2) > len(str1) : false
-		# if len(str2) == len(str1) : strcmp
-		# if len(str2) < len(str2) : save ending char, set to null, move str1 pointer from start to end and strcmp
-		
-		
-		pop_stack(CLIB_strcmp_strAddress1, CLIB_strcmp_strAddress2, CLIB_strcmp_char1, CLIB_strcmp_char2)
-		.end_macro
-

@@ -4,7 +4,7 @@
 # Description: This file implements commonly used macros used for assignments and projects
 # Dependencies: macros.asm
 # Notes: Return value registers are NOT saved prior to macro invocation ($v0, $v1, $f0, $f1). The caller is responsible to save those registers if the value is to be retained.
-#	 Search for the tilde character ‘~’ to easily search for macro implementation.
+#	 Search for the tilde character '~' to easily search for macro implementation.
 #
 # Macro list: Some macros contain variations to accept different types of parameters
 # * = Not implemented yet
@@ -37,8 +37,8 @@
 # - random_setSeed
 # - random_int
 # - random_intRange
-# - random_float*
-# - random_double*
+# - random_float
+# - random_double
 #
 # Miscellaneous Services:
 # - midi_out*
@@ -148,14 +148,6 @@
 		pop_stack($a0)
 		.end_macro
 
-		.macro print_strl($str)
-		.data
-ps_str:		.asciiz		$str
-		.text
-		
-		print_stra(ps_str)	
-		.end_macro
-
 # ===========================================================================
 # Macro~: print_char
 # Description: Prints a character to the console
@@ -209,12 +201,23 @@ ps_str:		.asciiz		$str
 # ===========================================================================
 # Macro~: read_str
 # Description: Reads a string from the console
-# Parameters: 
+# read_str - Parameters: 
 #	$address: The register that contains the address of the buffer
 #	$maxCharsRead: The register that contains the value of the maximum number of characters to be read
+# read_stri - Parameters: 
+#	$address: The register that contains the address of the buffer
+#	$maxCharsRead: An immediate value of the maximum number of characters to be read
 # ===========================================================================	
 		.macro read_str($address, $maxCharsRead)
 		SYSCALL_PRIVATE_InvokeSyscall($address, $maxCharsRead, $a0, $a1, 8)
+		.end_macro
+		
+		.macro read_stri($address, $maxCharsRead)
+		push_stack($a0, $a1)
+		move		$a0, $address
+		li		$a1, $maxCharsRead
+		read_str($a0, $a1)
+		pop_stack($a0, $a1)
 		.end_macro
 
 # ===========================================================================
@@ -239,8 +242,11 @@ ps_str:		.asciiz		$str
 # file_open - Parameters: 
 #	$filename: A register that contains the address to a string that contains the path to the file
 #	$mode: A register value value of 0 (read), 1 (write), or 9 (append)
-# file_openli - Parameters: 
+# file_openai - Parameters: 
 #	$filename: A label to of the string that contains the path to the file
+#	$mode: An immediate value of 0 (read), 1 (write), or 9 (append)
+# file_openli - Parameters: 
+#	$filename: A string literal that contains the path to the file
 #	$mode: An immediate value of 0 (read), 1 (write), or 9 (append)
 # Return Value: The file descriptor in $v0
 # ===========================================================================
@@ -248,16 +254,20 @@ ps_str:		.asciiz		$str
 		SYSCALL_PRIVATE_InvokeSyscall($filename, $mode, $a0, $a1, 13)	 # $a2 is ignored		
 		.end_macro
 
+		.macro file_openai($filename, $mode)
+		push_stack($t0, $t1)
+		la		$t0, $filename
+		li		$t1, $mode
+		file_open($t0, $t1)
+		pop_stack($t0, $t1)	
+		.end_macro
+
 		.macro file_openli($filename, $mode)
 		.data
 fopenli_file:	.asciiz		$filename
 		.text
 		
-		push_stack($t0, $t1)
-		la		$t0, fopenli_file
-		li		$t1, $mode
-		file_open($t0, $t1)
-		pop_stack($t0, $t1)	
+		file_openai(fopenli_file, $mode)	
 		.end_macro
 		
 
@@ -268,13 +278,22 @@ fopenli_file:	.asciiz		$filename
 #	$fd: A register that contains the file descriptor
 #	$buffer: A register that contians the address of the input buffer
 #	$maxChars: A register that contains the value of the maximum number of characters to read
+# file_readi - Parameters: 
+#	$maxChars: An immediate value of the maximum number of characters to read
 # Return Value: The amount of characters read in $v0. Negative if error
 # ===========================================================================
 		.macro file_read($fd, $buffer, $maxChars)
-		SYSCALL_PRIVATE_InvokeSyscall($fd, $buffer, $maxChars, $a0, $a1, $a0, 14)
+		SYSCALL_PRIVATE_InvokeSyscall($fd, $buffer, $maxChars, $a0, $a1, $a2, 14)
 		.end_macro
 		
-
+		.macro file_readi($fd, $buffer, $maxChars)
+		push_stack($t0, $t1, $t2)
+		move		$t0, $fd
+		move		$t1, $buffer
+		li		$t2, $maxChars
+		file_read($t0, $t1, $t2)
+		pop_stack($t0, $t1, $t2)
+		.end_macro
 # ===========================================================================
 # Macro~: file_write
 # Description: Writes the bytes from a buffer to a file
@@ -285,7 +304,7 @@ fopenli_file:	.asciiz		$filename
 # Return Value: The amount of characters read in $v0. Negative if error
 # ===========================================================================
 		.macro file_write($fd, $buffer, $maxChars)
-		SYSCALL_PRIVATE_InvokeSyscall($fd, $buffer, $maxChars, $a0, $a1, $a0, 15)
+		SYSCALL_PRIVATE_InvokeSyscall($fd, $buffer, $maxChars, $a0, $a1, $a2, 15)
 		.end_macro
 
 # ===========================================================================
@@ -295,7 +314,7 @@ fopenli_file:	.asciiz		$filename
 #	$fd: A register that contains the file descriptor
 # ===========================================================================
 		.macro file_close($fd)
-		SYSCALL_PRIVATE_InvokeSyscall($stream, $a0, 16)	
+		SYSCALL_PRIVATE_InvokeSyscall($fd, $a0, 16)	
 		.end_macro
 
 
@@ -316,7 +335,7 @@ fopenli_file:	.asciiz		$filename
 
 		.macro random_initl($id)
 		push_stack($a0)
-		la		$a0, $id
+		lw		$a0, $id
 		time()
 		random_setSeed($a0, $v0)
 		pop_stack($a0)
@@ -372,12 +391,51 @@ fopenli_file:	.asciiz		$filename
 
 		.macro random_intRangeli($id, $upperBound)
 		push_stack($a0, $a1)
-		la		$a0, $id
+		lw		$a0, $id
 		li		$a1, $upperBound
 		random_intRange($a0, $a1)
 		pop_stack($a0, $a1)
 		.end_macro
 
+# ===========================================================================
+# Macro~: random_float
+# Description: Generates a random floating point value
+# random_float - Parameters: 
+#	$id: The register that stores the id of the pseudorandom number generator
+# random_floatl - Parameters: 
+#	$id: The label that points to the id of the pseudorandom number generator
+# Return Value: A random number in $f0
+# ===========================================================================	
+		.macro random_float($id)
+		SYSCALL_PRIVATE_InvokeSyscall($id, $a0, 43)
+		.end_macro
+
+		.macro random_floatl($id)
+		push_stack($a0)
+		lw		$a0, $id
+		SYSCALL_PRIVATE_InvokeSyscall($a0, $a0, 43)
+		pop_stack($a0)
+		.end_macro
+
+# ===========================================================================
+# Macro~: random_double
+# Description: Generates a random double value
+# random_double - Parameters: 
+#	$id: The register that stores the id of the pseudorandom number generator
+# random_doublel - Parameters: 
+#	$id: The label that points to the id of the pseudorandom number generator
+# Return Value: A random number in $f0
+# ===========================================================================	
+		.macro random_double($id)
+		SYSCALL_PRIVATE_InvokeSyscall($id, $a0, 44)
+		.end_macro
+
+		.macro random_doublel($id)
+		push_stack($a0)
+		lw		$a0, $id
+		SYSCALL_PRIVATE_InvokeSyscall($a0, $a0, 44)
+		pop_stack($a0)
+		.end_macro
 
 # ***************************************************************************
 # Miscellaneous Services
@@ -420,11 +478,20 @@ fopenli_file:	.asciiz		$filename
 # ===========================================================================
 # Macro~: sbrk
 # Description: Allocates heap memory
-# Parameters: 
-#	$register: Number of bytes to allocate
+# sbrk - Parameters: 
+#	$value: A register that contains the number of bytes to allocate
+# sbrki - Parameters: 
+#	$value: An immediate value of the number of bytes to allocate
 # ===========================================================================		
-		.macro sbrk($register)
-		SYSCALL_PRIVATE_InvokeSyscall($register, $a0, 9)	
+		.macro sbrk($value)
+		SYSCALL_PRIVATE_InvokeSyscall($value, $a0, 9)	
+		.end_macro
+
+		.macro sbrki($value)
+		push_stack($a0)
+		li		$a0, $value
+		sbrk($a0)	
+		pop_stack($a0)
 		.end_macro
 
 # ===========================================================================
